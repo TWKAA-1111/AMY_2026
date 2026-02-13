@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AMY 的馬年好運</title>
+    <style>
+        :root {
+            --cny-red: #d32f2f;
+            --cny-gold: #ffca28;
+            --shiny-gold: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100vh;
+            background-color: #b32a2a; 
+            font-family: 'Microsoft JhengHei', sans-serif;
+            overflow: hidden;
+        }
+
+        .scene {
+            display: none; width: 100vw; height: 100vh;
+            position: relative; overflow: hidden;
+        }
+        .scene.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        #scene-home {
+            background: url('bg.jpg') no-repeat center center;
+            background-size: contain; 
+        }
+
+        .home-content {
+            display: flex; flex-direction: column; align-items: center;
+            margin-top: 15vh; 
+            z-index: 100;
+        }
+
+        .title-frame {
+            border: 4px solid var(--cny-red);
+            background: var(--shiny-gold);
+            background-size: 200% auto;
+            padding: 10px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 0 #8b0000, 0 8px 15px rgba(0,0,0,0.4);
+            animation: gold-shine 3s linear infinite;
+            margin-bottom: 40px;
+        }
+
+        @keyframes gold-shine { to { background-position: 200% center; } }
+
+        .home-title {
+            color: var(--cny-red); font-size: 1.5rem; font-weight: 900; margin: 0;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.7);
+        }
+
+        .btn-start {
+            background-color: var(--cny-gold); color: var(--cny-red);
+            border: none; padding: 15px 45px; font-size: 22px; font-weight: bold;
+            border-radius: 50px; cursor: pointer; animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
+
+        #main-img { 
+            width: 100vw; height: 100vh;
+            object-fit: contain; 
+            z-index: 5;
+            /* 修正 1：將放大原點設定得更低 (85%) */
+            transform-origin: center 85%; 
+            transition: transform 3.0s ease-in, opacity 2.5s ease-in;
+        }
+
+        #ingot-touch {
+            position: absolute; bottom: 22%; left: 32%; width: 36%; height: 18%;
+            z-index: 100; cursor: pointer;
+        }
+
+        /* 修正 2：加入向上位移 translateY(-35%) 來將最終畫面拉回正中間 */
+        .zoom-max { 
+            transform: translateY(-35%) scale(15) !important; 
+            opacity: 0 !important; 
+        }
+        .no-transition { transition: none !important; }
+
+        #fortune-box {
+            position: absolute; top: 0; left: 0; 
+            width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0.98); 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center;
+            border: 10px double var(--cny-gold); box-sizing: border-box;
+        }
+
+        .fortune-category {
+            font-size: 42px; font-weight: 900; color: var(--cny-red);
+            text-shadow: 2px 2px 0px var(--cny-gold); margin-bottom: 10px;
+        }
+
+        .fortune-content {
+            font-size: 24px; color: #333; font-weight: bold;
+            margin-bottom: 25px; padding: 0 20px;
+        }
+
+        .jay-dialog {
+            font-size: 18px; color: #d32f2f; font-weight: bold;
+            margin-top: 20px; background: #fff5f5; padding: 10px 20px; 
+            border: 2px dashed var(--cny-red); border-radius: 15px;
+        }
+
+        .btn-retry {
+            margin-top: 30px; background: var(--cny-red); color: white;
+            border: none; padding: 15px 45px; border-radius: 50px;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgm" loop><source src="bgm.mp3" type="audio/mpeg"></audio>
+    <audio id="shake-sound"><source src="shake.mp3" type="audio/mpeg"></audio>
+    <audio id="reveal-sound"><source src="reveal.mp3" type="audio/mpeg"></audio>
+
+    <div id="scene-home" class="scene active">
+        <div class="home-content">
+            <div class="title-frame">
+                <h1 class="home-title">AMY 的馬年好運</h1>
+            </div>
+            <button class="btn-start" onclick="startGame()">🧧 點擊開啟</button>
+        </div>
+    </div>
+
+    <div id="scene-game" class="scene" style="background-color: #ff4d4d;">
+        <div id="ingot-touch" onclick="handleAction()"></div>
+        <img id="main-img" src="idle.gif">
+        
+        <div id="fortune-box">
+            <div id="category-text" class="fortune-category"></div>
+            <div id="content-text" class="fortune-content"></div>
+            <img src="cinnamoroll_dance.gif" style="width: 150px;">
+            <p class="jay-dialog">我是婕伊，也祝大家拜年唷!!</p>
+            <button class="btn-retry" onclick="resetGame()">再拿一次好運 🐎</button>
+        </div>
+    </div>
+
+    <script>
+        const fortunes = [
+            { cat: "超級吉", msg: "馬到成功，運勢奔騰萬里！" },
+            { cat: "大吉", msg: "龍馬精神，健康平安吃百二！" },
+            { cat: "大吉", msg: "一馬當先，財源廣進進家門！" },
+            { cat: "吉", msg: "天馬行空，心想事成萬事興！" },
+            { cat: "大吉", msg: "策馬揚鞭，事業步步高升！" },
+            { cat: "超級吉", msg: "馬年行大運，福氣滿盈每一天！" },
+            { cat: "吉", msg: "千軍萬馬，貴人相助事事順心！" },
+            { cat: "大吉", msg: "馬年大發，財氣亨通擋不住！" },
+            { cat: "超級吉", msg: "萬事如意，全家平安喜樂！" },
+            { cat: "大吉", msg: "金馬送財，富貴榮華在身邊！" }
+        ];
+
+        const bgm = document.getElementById('bgm');
+        const shakeSnd = document.getElementById('shake-sound');
+        const revealSnd = document.getElementById('reveal-sound');
+        const mainImg = document.getElementById('main-img');
+        const fortuneBox = document.getElementById('fortune-box');
+
+        bgm.volume = 0.15;
+        shakeSnd.volume = 1.0;
+        revealSnd.volume = 1.0;
+
+        function startGame() {
+            document.getElementById('scene-home').style.display = 'none';
+            document.getElementById('scene-game').classList.add('active');
+            bgm.play();
+        }
+
+        function handleAction() {
+            document.getElementById('ingot-touch').style.pointerEvents = 'none';
+            shakeSnd.play();
+            mainImg.src = 'shake.gif';
+            
+            // 搖晃 2 秒
+            setTimeout(() => {
+                mainImg.src = 'yuanbao.gif';
+                setTimeout(() => {
+                    revealSnd.play();
+                    mainImg.classList.add('zoom-max');
+                    
+                    // 1.8 秒後顯示中籤畫面 (輕快節奏)
+                    setTimeout(() => {
+                        const res = fortunes[Math.floor(Math.random() * fortunes.length)];
+                        document.getElementById('category-text').innerText = "🧧【" + res.cat + "】";
+                        document.getElementById('content-text').innerText = res.msg;
+                        fortuneBox.style.display = 'flex';
+                        mainImg.style.visibility = 'hidden';
+                    }, 1800); 
+                }, 100);
+            }, 2000); 
+        }
+
+        function resetGame() {
+            mainImg.classList.add('no-transition');
+            mainImg.classList.remove('zoom-max');
+            fortuneBox.style.display = 'none';
+            mainImg.style.visibility = 'visible';
+            mainImg.style.opacity = '1';
+            mainImg.src = 'idle.gif';
+            document.getElementById('ingot-touch').style.pointerEvents = 'auto';
+            setTimeout(() => { mainImg.classList.remove('no-transition'); }, 50);
+        }
+    </script>
+</body>
+</html>
