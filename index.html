@@ -2,11 +2,20 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta property="og:title" content="🧧 AMY 的馬年好運 🐎">
     <meta property="og:description" content="我是AMY，快點進來領取你的馬年好運！">
-    <meta property="og:image" content="share.jpg"> 
+    <meta property="og:image" content="share.jpg?v=1.1"> 
+    <meta property="og:type" content="website">
+
     <title>AMY 的馬年好運</title>
+    
+    <link rel="preload" href="bg.jpg" as="image">
+    <link rel="preload" href="shake.gif" as="image">
+    <link rel="preload" href="yuanbao.gif" as="image">
+    <link rel="preload" href="bgm.mp3" as="audio">
+
     <style>
         :root {
             --cny-red: #d32f2f;
@@ -20,6 +29,9 @@
             font-family: 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
             overscroll-behavior-y: contain;
+            /* 避免長按圖片彈出菜單 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
 
         .scene {
@@ -67,21 +79,15 @@
 
         .img-container {
             position: absolute;
-            top: 55%; 
-            left: 50%;
+            top: 55%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            pointer-events: none;
+            width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5; pointer-events: none;
         }
 
         #main-img { 
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: contain; 
             transform-origin: center center; 
             transition: transform 3.0s ease-out, opacity 2.8s ease-in;
@@ -127,13 +133,22 @@
             border: none; padding: 15px 45px; border-radius: 50px;
             font-size: 20px; font-weight: bold; cursor: pointer;
         }
+        
+        /* 隱形預載容器 */
+        #preload-container { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; }
     </style>
 </head>
 <body>
 
-    <audio id="bgm" loop><source src="bgm.mp3" type="audio/mpeg"></audio>
-    <audio id="shake-sound"><source src="shake.mp3" type="audio/mpeg"></audio>
-    <audio id="reveal-sound"><source src="reveal.mp3" type="audio/mpeg"></audio>
+    <audio id="bgm" loop preload="auto"><source src="bgm.mp3" type="audio/mpeg"></audio>
+    <audio id="shake-sound" preload="auto"><source src="shake.mp3" type="audio/mpeg"></audio>
+    <audio id="reveal-sound" preload="auto"><source src="reveal.mp3" type="audio/mpeg"></audio>
+
+    <div id="preload-container">
+        <img src="shake.gif">
+        <img src="yuanbao.gif">
+        <img src="cinnamoroll_dance.gif">
+    </div>
 
     <div id="scene-home" class="scene active">
         <div class="home-content">
@@ -186,7 +201,7 @@
         function startGame() {
             document.getElementById('scene-home').style.display = 'none';
             document.getElementById('scene-game').classList.add('active');
-            bgm.play();
+            bgm.play().catch(()=>{}); 
         }
 
         function handleAction() {
@@ -222,28 +237,19 @@
             setTimeout(() => { mainImg.style.transition = 'transform 3.0s ease-out, opacity 2.8s ease-in'; }, 50);
         }
 
-        // 強制停止所有聲音的函數
         function killAllSounds() {
-            bgm.pause();
-            bgm.currentTime = 0;
-            shakeSnd.pause();
-            shakeSnd.currentTime = 0;
-            revealSnd.pause();
-            revealSnd.currentTime = 0;
+            bgm.pause(); bgm.currentTime = 0;
+            shakeSnd.pause(); shakeSnd.currentTime = 0;
+            revealSnd.pause(); revealSnd.currentTime = 0;
         }
 
-        // 監聽頁面可見度 (切換 App)
         document.addEventListener("visibilitychange", function() {
-            if (document.hidden) {
-                killAllSounds();
-            } else {
-                if (document.getElementById('scene-home').style.display === 'none') {
-                    bgm.play();
-                }
+            if (document.hidden) { killAllSounds(); } 
+            else {
+                if (document.getElementById('scene-home').style.display === 'none') { bgm.play().catch(()=>{}); }
             }
         });
 
-        // 針對 LINE/手機瀏覽器關閉分頁的強力監聽
         window.addEventListener("pagehide", killAllSounds);
         window.addEventListener("beforeunload", killAllSounds);
     </script>
