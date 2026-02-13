@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta property="og:title" content="🧧 AMY 的馬年好運 🐎">
+    <meta property="og:description" content="我是婕伊，快點進來領取你的馬年好運！">
+    <meta property="og:image" content="share.jpg"> 
+
     <title>AMY 的馬年好運</title>
     <style>
         :root {
@@ -16,6 +21,7 @@
             background-color: #b32a2a; 
             font-family: 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
+            overscroll-behavior-y: contain;
         }
 
         .scene {
@@ -62,12 +68,15 @@
         @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
 
         #main-img { 
+            position: fixed;
+            top: 0; left: 0;
             width: 100vw; height: 100vh;
             object-fit: contain; 
             z-index: 5;
-            /* 修正 1：將放大原點設定得更低 (85%) */
-            transform-origin: center 85%; 
-            transition: transform 3.0s ease-in, opacity 2.5s ease-in;
+            transform-origin: center 80%; 
+            /* 讓透明度變化的時間晚一點點才結束，確保元寶看得到 */
+            transition: transform 3.0s ease-in, opacity 2.8s ease-in;
+            pointer-events: none;
         }
 
         #ingot-touch {
@@ -75,9 +84,9 @@
             z-index: 100; cursor: pointer;
         }
 
-        /* 修正 2：加入向上位移 translateY(-35%) 來將最終畫面拉回正中間 */
         .zoom-max { 
-            transform: translateY(-35%) scale(15) !important; 
+            /* 調整位移與倍率，確保手機版置中且看得到動作 */
+            transform: translateY(-25vh) scale(16) !important; 
             opacity: 0 !important; 
         }
         .no-transition { transition: none !important; }
@@ -177,14 +186,15 @@
             shakeSnd.play();
             mainImg.src = 'shake.gif';
             
-            // 搖晃 2 秒
             setTimeout(() => {
+                // 先切換到元寶圖
                 mainImg.src = 'yuanbao.gif';
+                
+                // 稍微延遲 50ms 確保瀏覽器渲染了元寶圖，再開始放大動畫
                 setTimeout(() => {
                     revealSnd.play();
                     mainImg.classList.add('zoom-max');
                     
-                    // 1.8 秒後顯示中籤畫面 (輕快節奏)
                     setTimeout(() => {
                         const res = fortunes[Math.floor(Math.random() * fortunes.length)];
                         document.getElementById('category-text').innerText = "🧧【" + res.cat + "】";
@@ -192,7 +202,7 @@
                         fortuneBox.style.display = 'flex';
                         mainImg.style.visibility = 'hidden';
                     }, 1800); 
-                }, 100);
+                }, 50);
             }, 2000); 
         }
 
@@ -208,4 +218,5 @@
         }
     </script>
 </body>
+</html>
 </html>
