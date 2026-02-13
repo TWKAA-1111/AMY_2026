@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta property="og:title" content="🧧 AMY 的馬年好運 🐎">
     <meta property="og:description" content="我是AMY，快點進來領取你的馬年好運！">
     <meta property="og:image" content="share.jpg"> 
-
     <title>AMY 的馬年好運</title>
     <style>
         :root {
@@ -21,7 +19,6 @@
             background-color: #b32a2a; 
             font-family: 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
-            /* 防止手機下拉重整 */
             overscroll-behavior-y: contain;
         }
 
@@ -68,30 +65,37 @@
 
         @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
 
-        #main-img { 
+        .img-container {
             position: absolute;
-            top: 50%; left: 50%;
-            width: 100vw; height: 100vh;
-            object-fit: contain; 
-            z-index: 5;
-            /* 置中定位並鎖定縮放原點 */
+            top: 55%; 
+            left: 50%;
             transform: translate(-50%, -50%);
-            transform-origin: center 70%; 
-            transition: transform 3.0s ease-out, opacity 2.8s ease-in;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
             pointer-events: none;
+        }
+
+        #main-img { 
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            transform-origin: center center; 
+            transition: transform 3.0s ease-out, opacity 2.8s ease-in;
+        }
+
+        .zoom-max { 
+            transform: scale(10) !important; 
+            opacity: 0 !important; 
         }
 
         #ingot-touch {
             position: absolute; bottom: 22%; left: 32%; width: 36%; height: 18%;
             z-index: 100; cursor: pointer;
         }
-
-        /* 縮放倍率調整為 12，防止圖片飛出螢幕範圍 */
-        .zoom-max { 
-            transform: translate(-50%, -50%) scale(12) !important; 
-            opacity: 0 !important; 
-        }
-        .no-transition { transition: none !important; }
 
         #fortune-box {
             position: absolute; top: 0; left: 0; 
@@ -142,7 +146,9 @@
 
     <div id="scene-game" class="scene" style="background-color: #ff4d4d;">
         <div id="ingot-touch" onclick="handleAction()"></div>
-        <img id="main-img" src="idle.gif">
+        <div class="img-container">
+            <img id="main-img" src="idle.gif">
+        </div>
         
         <div id="fortune-box">
             <div id="category-text" class="fortune-category"></div>
@@ -206,28 +212,40 @@
         }
 
         function resetGame() {
-            mainImg.classList.add('no-transition');
+            mainImg.style.transition = 'none';
             mainImg.classList.remove('zoom-max');
             fortuneBox.style.display = 'none';
             mainImg.style.visibility = 'visible';
             mainImg.style.opacity = '1';
             mainImg.src = 'idle.gif';
             document.getElementById('ingot-touch').style.pointerEvents = 'auto';
-            setTimeout(() => { mainImg.classList.remove('no-transition'); }, 50);
+            setTimeout(() => { mainImg.style.transition = 'transform 3.0s ease-out, opacity 2.8s ease-in'; }, 50);
         }
 
-        // 偵測頁面可見度，關閉或切換分頁時停止音樂
+        // 強制停止所有聲音的函數
+        function killAllSounds() {
+            bgm.pause();
+            bgm.currentTime = 0;
+            shakeSnd.pause();
+            shakeSnd.currentTime = 0;
+            revealSnd.pause();
+            revealSnd.currentTime = 0;
+        }
+
+        // 監聽頁面可見度 (切換 App)
         document.addEventListener("visibilitychange", function() {
             if (document.hidden) {
-                bgm.pause();
-                shakeSnd.pause();
-                revealSnd.pause();
+                killAllSounds();
             } else {
                 if (document.getElementById('scene-home').style.display === 'none') {
                     bgm.play();
                 }
             }
         });
+
+        // 針對 LINE/手機瀏覽器關閉分頁的強力監聽
+        window.addEventListener("pagehide", killAllSounds);
+        window.addEventListener("beforeunload", killAllSounds);
     </script>
 </body>
 </html>
