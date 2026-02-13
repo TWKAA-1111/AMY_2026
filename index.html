@@ -21,6 +21,7 @@
             background-color: #b32a2a; 
             font-family: 'Microsoft JhengHei', sans-serif;
             overflow: hidden;
+            /* 防止手機下拉重整 */
             overscroll-behavior-y: contain;
         }
 
@@ -68,14 +69,15 @@
         @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
 
         #main-img { 
-            position: fixed;
-            top: 0; left: 0;
+            position: absolute;
+            top: 50%; left: 50%;
             width: 100vw; height: 100vh;
             object-fit: contain; 
             z-index: 5;
-            /* 起始原點維持在 90% */
-            transform-origin: center 90%; 
-            transition: transform 3.0s ease-in, opacity 2.8s ease-in;
+            /* 置中定位並鎖定縮放原點 */
+            transform: translate(-50%, -50%);
+            transform-origin: center 70%; 
+            transition: transform 3.0s ease-out, opacity 2.8s ease-in;
             pointer-events: none;
         }
 
@@ -84,9 +86,9 @@
             z-index: 100; cursor: pointer;
         }
 
+        /* 縮放倍率調整為 12，防止圖片飛出螢幕範圍 */
         .zoom-max { 
-            /* 修正：將結束位移改為 -5vh，讓元寶最後停在螢幕較低的位置 */
-            transform: translateY(-5vh) scale(18) !important; 
+            transform: translate(-50%, -50%) scale(12) !important; 
             opacity: 0 !important; 
         }
         .no-transition { transition: none !important; }
@@ -188,7 +190,6 @@
             
             setTimeout(() => {
                 mainImg.src = 'yuanbao.gif';
-                
                 setTimeout(() => {
                     revealSnd.play();
                     mainImg.classList.add('zoom-max');
@@ -200,7 +201,7 @@
                         fortuneBox.style.display = 'flex';
                         mainImg.style.visibility = 'hidden';
                     }, 1800); 
-                }, 50);
+                }, 100);
             }, 2000); 
         }
 
@@ -214,6 +215,19 @@
             document.getElementById('ingot-touch').style.pointerEvents = 'auto';
             setTimeout(() => { mainImg.classList.remove('no-transition'); }, 50);
         }
+
+        // 偵測頁面可見度，關閉或切換分頁時停止音樂
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                bgm.pause();
+                shakeSnd.pause();
+                revealSnd.pause();
+            } else {
+                if (document.getElementById('scene-home').style.display === 'none') {
+                    bgm.play();
+                }
+            }
+        });
     </script>
 </body>
 </html>
