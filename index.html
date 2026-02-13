@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <meta property="og:title" content="🧧 AMY 的馬年好運 🐎">
-    <meta property="og:description" content="我是婕伊，快點進來領取你的馬年好運！">
+    <meta property="og:description" content="我是AMY，快點進來領取你的馬年好運！">
     <meta property="og:image" content="share.jpg"> 
 
     <title>AMY 的馬年好運</title>
@@ -73,8 +73,8 @@
             width: 100vw; height: 100vh;
             object-fit: contain; 
             z-index: 5;
-            transform-origin: center 80%; 
-            /* 讓透明度變化的時間晚一點點才結束，確保元寶看得到 */
+            /* 起始原點維持在 90% */
+            transform-origin: center 90%; 
             transition: transform 3.0s ease-in, opacity 2.8s ease-in;
             pointer-events: none;
         }
@@ -85,8 +85,8 @@
         }
 
         .zoom-max { 
-            /* 調整位移與倍率，確保手機版置中且看得到動作 */
-            transform: translateY(-25vh) scale(16) !important; 
+            /* 修正：將結束位移改為 -5vh，讓元寶最後停在螢幕較低的位置 */
+            transform: translateY(-5vh) scale(18) !important; 
             opacity: 0 !important; 
         }
         .no-transition { transition: none !important; }
@@ -187,10 +187,8 @@
             mainImg.src = 'shake.gif';
             
             setTimeout(() => {
-                // 先切換到元寶圖
                 mainImg.src = 'yuanbao.gif';
                 
-                // 稍微延遲 50ms 確保瀏覽器渲染了元寶圖，再開始放大動畫
                 setTimeout(() => {
                     revealSnd.play();
                     mainImg.classList.add('zoom-max');
@@ -218,5 +216,4 @@
         }
     </script>
 </body>
-</html>
 </html>
